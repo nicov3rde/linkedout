@@ -167,18 +167,12 @@ export default function Jargonifier() {
     }
     setError('')
     try {
-      const apiKey = import.meta.env.VITE_OPENAI_API_KEY
-      if (!apiKey) throw new Error('Missing VITE_OPENAI_API_KEY in .env')
-
       const style = TONE_STYLES.find(s => s.id === toneStyleRef.current)
       const promptInstruction = style.prompts[intensityRef.current]
 
-      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      const res = await fetch('/api/chat', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'gpt-4o',
           max_tokens: 512,

@@ -81,21 +81,15 @@ export default function HeadshotGenerator() {
     startStepCycle()
 
     try {
-      const apiKey = import.meta.env.VITE_OPENAI_API_KEY
-      if (!apiKey) throw new Error('Missing VITE_OPENAI_API_KEY in .env')
-
       // Strip the data URL prefix to get raw base64
       const base64 = imageSrc.split(',')[1]
       const mimeMatch = imageSrc.match(/^data:(image\/\w+);base64,/)
       const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg'
 
       // Step 1: Vision — describe the subject
-      const visionRes = await fetch('https://api.openai.com/v1/chat/completions', {
+      const visionRes = await fetch('/api/chat', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'gpt-4o',
           max_tokens: 300,
@@ -135,12 +129,9 @@ export default function HeadshotGenerator() {
         ? { model: 'gpt-image-1', prompt, size: '1024x1024', quality: 'high' }
         : { model: 'dall-e-3', prompt, n: 1, size: '1024x1024', quality: 'hd' }
 
-      const imgRes = await fetch('https://api.openai.com/v1/images/generations', {
+      const imgRes = await fetch('/api/images', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(imgBody),
       })
 
