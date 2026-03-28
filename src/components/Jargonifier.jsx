@@ -92,6 +92,7 @@ export default function Jargonifier() {
   const [regenerating, setRegenerating] = useState(false)
   const [toneStyle, setToneStyle] = useState('exec')
   const [intensity, setIntensity] = useState(1)
+  const [isEditing, setIsEditing] = useState(false)
   const recognitionRef = useRef(null)
   const interimRef = useRef('')
   const toneStyleRef = useRef(toneStyle)
@@ -292,16 +293,54 @@ Text: "${text}"`,
 
         {/* Side-by-side */}
         {(transcript || jargonified) && (
-          <div className="mt-6 grid grid-cols-2 gap-4">
-            <div>
-              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                What You Said
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+            <div className="flex flex-col h-full">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                  What You Said
+                </div>
+                {!isEditing && transcript && (
+                  <button 
+                    onClick={() => setIsEditing(true)}
+                    className="text-xs font-semibold text-[#0a66c2] hover:text-[#004182] hover:underline cursor-pointer"
+                  >
+                    Edit Text
+                  </button>
+                )}
               </div>
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-700 min-h-[100px]">
-                {transcript || <span className="text-gray-400 italic">Transcript will appear here…</span>}
-              </div>
+              
+              {isEditing ? (
+                <div className="flex flex-col flex-1">
+                  <textarea
+                    className="flex-1 w-full bg-white border border-[#0a66c2] rounded-lg p-3 text-sm text-gray-700 min-h-[120px] focus:outline-none focus:ring-1 focus:ring-[#0a66c2] shadow-sm resize-y"
+                    value={transcript}
+                    onChange={(e) => setTranscript(e.target.value)}
+                  />
+                  <div className="flex justify-end mt-3 gap-2">
+                    <button 
+                      onClick={() => setIsEditing(false)}
+                      className="text-xs font-medium text-gray-500 hover:text-gray-700 px-3 py-1.5 cursor-pointer rounded transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setIsEditing(false)
+                        jargonify(transcript)
+                      }}
+                      className="bg-[#0a66c2] text-white text-xs font-medium px-4 py-1.5 rounded-full hover:bg-[#004182] transition-colors cursor-pointer shadow-sm"
+                    >
+                      Update & Jargonify
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-700 min-h-[120px] flex-1">
+                  {transcript || <span className="text-gray-400 italic">Transcript will appear here…</span>}
+                </div>
+              )}
             </div>
-            <div>
+            <div className="flex flex-col h-full">
               <div className="flex items-center justify-between mb-2">
                 <div className="text-xs font-semibold text-[#0a66c2] uppercase tracking-wider">
                   LinkedIn Version ✨
@@ -314,7 +353,7 @@ Text: "${text}"`,
                   />
                 )}
               </div>
-              <div className="relative bg-blue-50 border border-[#0a66c2] border-opacity-30 rounded-lg p-4 text-sm text-gray-800 min-h-[100px]">
+              <div className="relative flex-1 bg-blue-50 border border-[#0a66c2] border-opacity-30 rounded-lg p-4 text-sm text-gray-800 min-h-[120px]">
                 {loading ? (
                   <div className="flex items-center gap-2 text-gray-400">
                     <div className="w-4 h-4 border-2 border-[#0a66c2] border-t-transparent rounded-full animate-spin" />
