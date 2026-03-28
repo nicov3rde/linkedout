@@ -27,6 +27,59 @@ function calcJargonLevel(text) {
   return Math.min(100, score + 10)
 }
 
+const TONE_STYLES = [
+  {
+    id: 'exec',
+    label: '👔 Executive',
+    desc: 'Strategic alignment & stakeholder value',
+    buzzwords: ['leverage', 'synergy', 'stakeholder', 'strategic alignment', 'fiscal narrative', 'core competency', 'value proposition', 'deliverables', 'KPI', 'ROI'],
+    prompts: [
+      'Rewrite this as a mild executive memo with 1-2 business buzzwords. Keep it mostly normal.',
+      'Rewrite this in classic corporate executive speak. Reference stakeholders, strategy, and value.',
+      'Rewrite this as a C-suite LinkedIn post dripping in strategic alignment, synergy, and stakeholder value.',
+      'Rewrite this as a completely unhinged Fortune 500 executive who has replaced all human thought with buzzwords. Pure shareholder-value-maximizing gibberish.',
+    ],
+  },
+  {
+    id: 'techbro',
+    label: '🚀 Tech Bro',
+    desc: 'Disruption, 10x, scale at all costs',
+    buzzwords: ['disrupt', 'scale', '10x', 'ship it', 'move fast', 'growth hacking', 'pivot', 'ecosystem', 'paradigm shift', 'north star metric'],
+    prompts: [
+      'Rewrite this with light startup energy. Maybe one or two tech buzzwords.',
+      'Rewrite this as a tech startup founder on LinkedIn. Mention disruption, scaling, or shipping.',
+      'Rewrite this as a Silicon Valley tech bro who wants to 10x everything, disrupt industries, and move fast and break things.',
+      'Rewrite this as a completely deranged tech bro who wants to disrupt death itself, 10x the universe, and ship an MVP before thinking. Pure hyper-growth lunacy.',
+    ],
+  },
+  {
+    id: 'wellness',
+    label: '🧘 Wellness Guru',
+    desc: 'Authentic journey & purpose-driven passion',
+    buzzwords: ['authentic', 'journey', 'purpose-driven', 'whole self', 'gratitude', 'mindful', 'intentional', 'vulnerability', 'growth mindset', 'aligned'],
+    prompts: [
+      'Rewrite this with a slightly warm, positive tone. Maybe mention being intentional.',
+      'Rewrite this as a LinkedIn wellness influencer sharing their authentic journey with gratitude and purpose.',
+      'Rewrite this as a professional wellness guru who brings their whole self to work, leads with vulnerability, and is deeply, insufferably grateful.',
+      'Rewrite this as a completely unhinged wellness influencer who has turned every mundane event into a spiritual awakening and wants you to journal about it.',
+    ],
+  },
+  {
+    id: 'hustle',
+    label: '💪 Hustle Culture',
+    desc: '5am grind, blessed, no days off',
+    buzzwords: ['grind', 'blessed', 'grateful', 'no days off', 'outwork', 'discipline', 'results', 'earned it', 'early mornings', 'refuse to quit'],
+    prompts: [
+      'Rewrite this with a hint of motivated, positive energy. Keep it grounded.',
+      'Rewrite this as a hustle-culture LinkedIn post. Mention the grind, discipline, or being grateful.',
+      'Rewrite this as an obsessive hustle-culture poster who wakes up at 4am, never rests, and wants you to know they earned everything through pure grind.',
+      'Rewrite this as a completely unhinged hustle maximalist who has not slept in 3 years, considers blinking a waste of time, and will die before taking a day off. Unhinged motivational energy.',
+    ],
+  },
+]
+
+const INTENSITY_LABELS = ['Mild', 'Classic', 'Overdrive', 'Unhinged']
+
 export default function Jargonifier() {
   const [isListening, setIsListening] = useState(false)
   const [transcript, setTranscript] = useState('')
@@ -34,8 +87,15 @@ export default function Jargonifier() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [stats, setStats] = useState({ buzzwordCount: 0, synergyScore: 0, jargonLevel: 0 })
+  const [toneStyle, setToneStyle] = useState('exec')
+  const [intensity, setIntensity] = useState(1)
   const recognitionRef = useRef(null)
   const interimRef = useRef('')
+  const toneStyleRef = useRef(toneStyle)
+  const intensityRef = useRef(intensity)
+
+  useEffect(() => { toneStyleRef.current = toneStyle }, [toneStyle])
+  useEffect(() => { intensityRef.current = intensity }, [intensity])
 
   useEffect(() => {
     return () => recognitionRef.current?.stop()
@@ -102,6 +162,9 @@ export default function Jargonifier() {
       const apiKey = import.meta.env.VITE_OPENAI_API_KEY
       if (!apiKey) throw new Error('Missing VITE_OPENAI_API_KEY in .env')
 
+      const style = TONE_STYLES.find(s => s.id === toneStyleRef.current)
+      const promptInstruction = style.prompts[intensityRef.current]
+
       const res = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -113,11 +176,9 @@ export default function Jargonifier() {
           max_tokens: 512,
           messages: [{
             role: 'user',
-            content: `Rewrite the following plain English statement as peak LinkedIn corporate jargon. Use buzzwords like "leverage", "synergy", "pivot", "disrupt", "move the needle", "circle back", "deep dive", "holistic approach", "thought leadership", etc. Make it absurdly over-the-top but still coherent. Keep it to 2-3 sentences max.
+            content: `${promptInstruction}. Keep it to 2-3 sentences max. Return ONLY the rewritten version, no explanation.
 
-Plain English: "${text}"
-
-Return ONLY the rewritten jargon version, no explanation.`,
+Text: "${text}"`,
           }],
         }),
       })
@@ -149,6 +210,54 @@ Return ONLY the rewritten jargon version, no explanation.`,
         <p className="text-sm text-gray-500 mb-6">
           Speak your plain thoughts. Watch them transform into peak professional gibberish.
         </p>
+
+        {/* Tone Style Selector */}
+        <div className="mb-6">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Tone Style</p>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {TONE_STYLES.map(s => (
+              <button
+                key={s.id}
+                onClick={() => setToneStyle(s.id)}
+                className={`flex flex-col items-start px-3 py-2 rounded-lg border text-left transition-all cursor-pointer ${
+                  toneStyle === s.id
+                    ? 'border-[#0a66c2] bg-blue-50 text-[#0a66c2]'
+                    : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+                }`}
+              >
+                <span className="text-sm font-semibold">{s.label}</span>
+                <span className="text-xs text-gray-400 leading-tight mt-0.5">{s.desc}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Intensity Slider */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Intensity</p>
+            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+              intensity === 0 ? 'bg-green-100 text-green-700' :
+              intensity === 1 ? 'bg-yellow-100 text-yellow-700' :
+              intensity === 2 ? 'bg-orange-100 text-orange-700' :
+              'bg-red-100 text-red-700'
+            }`}>
+              {INTENSITY_LABELS[intensity]}
+            </span>
+          </div>
+          <input
+            type="range"
+            min={0}
+            max={3}
+            step={1}
+            value={intensity}
+            onChange={e => setIntensity(Number(e.target.value))}
+            className="w-full accent-[#0a66c2] cursor-pointer"
+          />
+          <div className="flex justify-between text-xs text-gray-400 mt-1">
+            {INTENSITY_LABELS.map(l => <span key={l}>{l}</span>)}
+          </div>
+        </div>
 
         {/* Mic controls */}
         <div className="flex flex-col items-center gap-4">
