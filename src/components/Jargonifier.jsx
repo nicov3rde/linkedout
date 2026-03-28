@@ -72,11 +72,16 @@ export default function Jargonifier() {
     }
 
     recognition.onerror = (e) => {
-      setError(`Mic error: ${e.error}`)
+      if (e.error !== 'aborted') setError(`Mic error: ${e.error}`)
       setIsListening(false)
     }
 
-    recognition.onend = () => setIsListening(false)
+    recognition.onend = () => {
+      setIsListening(false)
+      if (interimRef.current.trim()) {
+        jargonify(interimRef.current)
+      }
+    }
 
     recognitionRef.current = recognition
     recognition.start()
@@ -86,9 +91,7 @@ export default function Jargonifier() {
   function stopListening() {
     recognitionRef.current?.stop()
     setIsListening(false)
-    if (interimRef.current.trim()) {
-      jargonify(interimRef.current)
-    }
+    // jargonify fires in onend to avoid double-calling
   }
 
   async function jargonify(text) {
@@ -96,19 +99,17 @@ export default function Jargonifier() {
     setLoading(true)
     setError('')
     try {
-      const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY
-      if (!apiKey) throw new Error('Missing VITE_ANTHROPIC_API_KEY in .env')
+      const apiKey = import.meta.env.VITE_OPENAI_API_KEY
+      if (!apiKey) throw new Error('Missing VITE_OPENAI_API_KEY in .env')
 
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-          'content-type': 'application/json',
-          'anthropic-dangerous-direct-browser-access': 'true',
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
+          model: 'gpt-4o',
           max_tokens: 512,
           messages: [{
             role: 'user',
@@ -127,7 +128,7 @@ Return ONLY the rewritten jargon version, no explanation.`,
       }
 
       const data = await res.json()
-      const result = data.content[0].text.trim()
+      const result = data.choices[0].message.content.trim()
       setJargonified(result)
       setStats({
         buzzwordCount: countBuzzwords(result),
