@@ -11,3 +11,22 @@
     min-height: 100vh;
   }
 }
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .cert-printable,
+  .cert-printable * {
+    visibility: visible;
+  }
+  .cert-printable {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+  }
+  .no-print {
+    display: none !important;
+  }
+}

@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import Dashboard from './Dashboard'
+import LinkedInShareButton from './LinkedInShareButton'
+import RegenButton from './RegenButton'
 
 const BUZZWORDS = [
   'synergy', 'leverage', 'pivot', 'disrupt', 'scalable', 'bandwidth',
@@ -87,6 +89,7 @@ export default function Jargonifier() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [stats, setStats] = useState({ buzzwordCount: 0, synergyScore: 0, jargonLevel: 0 })
+  const [regenerating, setRegenerating] = useState(false)
   const [toneStyle, setToneStyle] = useState('exec')
   const [intensity, setIntensity] = useState(1)
   const recognitionRef = useRef(null)
@@ -154,9 +157,13 @@ export default function Jargonifier() {
     // jargonify fires in onend to avoid double-calling
   }
 
-  async function jargonify(text) {
+  async function jargonify(text, { regen = false } = {}) {
     if (!text.trim()) return
-    setLoading(true)
+    if (regen) {
+      setRegenerating(true)
+    } else {
+      setLoading(true)
+    }
     setError('')
     try {
       const apiKey = import.meta.env.VITE_OPENAI_API_KEY
@@ -200,6 +207,7 @@ Text: "${text}"`,
       setError(e.message)
     } finally {
       setLoading(false)
+      setRegenerating(false)
     }
   }
 
@@ -294,22 +302,51 @@ Text: "${text}"`,
               </div>
             </div>
             <div>
-              <div className="text-xs font-semibold text-[#0a66c2] uppercase tracking-wider mb-2">
-                LinkedIn Version ✨
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-xs font-semibold text-[#0a66c2] uppercase tracking-wider">
+                  LinkedIn Version ✨
+                </div>
+                {jargonified && !loading && (
+                  <RegenButton
+                    onClick={() => jargonify(transcript, { regen: true })}
+                    spinning={regenerating}
+                    disabled={isListening}
+                  />
+                )}
               </div>
-              <div className="bg-blue-50 border border-[#0a66c2] border-opacity-30 rounded-lg p-4 text-sm text-gray-800 min-h-[100px]">
+              <div className="relative bg-blue-50 border border-[#0a66c2] border-opacity-30 rounded-lg p-4 text-sm text-gray-800 min-h-[100px]">
                 {loading ? (
                   <div className="flex items-center gap-2 text-gray-400">
                     <div className="w-4 h-4 border-2 border-[#0a66c2] border-t-transparent rounded-full animate-spin" />
                     Jargonifying…
                   </div>
                 ) : jargonified ? (
-                  jargonified
+                  <span className={regenerating ? 'opacity-40' : ''}>{jargonified}</span>
                 ) : (
                   <span className="text-gray-400 italic">Jargonified text will appear here…</span>
                 )}
+                {regenerating && (
+                  <div className="absolute inset-0 flex items-center justify-center rounded-lg">
+                    <div className="w-5 h-5 border-2 border-[#0a66c2] border-t-transparent rounded-full animate-spin" />
+                  </div>
+                )}
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Share to LinkedIn — shown after jargonification */}
+        {jargonified && !loading && (
+          <div className="mt-4 flex justify-end">
+            <LinkedInShareButton
+              type="jargon"
+              data={{
+                transcript,
+                jargonified,
+                toneLabel: TONE_STYLES.find(s => s.id === toneStyleRef.current)?.label ?? toneStyle,
+                intensityLabel: INTENSITY_LABELS[intensityRef.current ?? intensity],
+              }}
+            />
           </div>
         )}
 
