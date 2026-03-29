@@ -39,7 +39,7 @@ const TONE_STYLES = [
       'Rewrite this as a mild executive memo with 1-2 business buzzwords. Keep it mostly normal.',
       'Rewrite this in classic corporate executive speak. Reference stakeholders, strategy, and value.',
       'Rewrite this as a C-suite LinkedIn post dripping in strategic alignment, synergy, and stakeholder value.',
-      'Rewrite this as a completely unhinged Fortune 500 executive who has replaced all human thought with buzzwords. Pure shareholder-value-maximizing gibberish.',
+      'Rewrite this as a completely unhinged Fortune 500 executive who has replaced all human thought with buzzwords. Pure shareholder-value-maximizing gibberish. Write in mixed case with normal punctuation — just make the content extremely over the top and dramatic.',
     ],
   },
   {
@@ -51,7 +51,7 @@ const TONE_STYLES = [
       'Rewrite this with light startup energy. Maybe one or two tech buzzwords.',
       'Rewrite this as a tech startup founder on LinkedIn. Mention disruption, scaling, or shipping.',
       'Rewrite this as a Silicon Valley tech bro who wants to 10x everything, disrupt industries, and move fast and break things.',
-      'Rewrite this as a completely deranged tech bro who wants to disrupt death itself, 10x the universe, and ship an MVP before thinking. Pure hyper-growth lunacy.',
+      'Rewrite this as a completely deranged tech bro who wants to disrupt death itself, 10x the universe, and ship an MVP before thinking. Pure hyper-growth lunacy. Write in mixed case with normal punctuation — just make the content extremely over the top and dramatic.',
     ],
   },
   {
@@ -63,7 +63,7 @@ const TONE_STYLES = [
       'Rewrite this with a slightly warm, positive tone. Maybe mention being intentional.',
       'Rewrite this as a LinkedIn wellness influencer sharing their authentic journey with gratitude and purpose.',
       'Rewrite this as a professional wellness guru who brings their whole self to work, leads with vulnerability, and is deeply, insufferably grateful.',
-      'Rewrite this as a completely unhinged wellness influencer who has turned every mundane event into a spiritual awakening and wants you to journal about it.',
+      'Rewrite this as a completely unhinged wellness influencer who has turned every mundane event into a spiritual awakening and wants you to journal about it. Write in mixed case with normal punctuation — just make the content extremely over the top and dramatic.',
     ],
   },
   {
@@ -75,7 +75,7 @@ const TONE_STYLES = [
       'Rewrite this with a hint of motivated, positive energy. Keep it grounded.',
       'Rewrite this as a hustle-culture LinkedIn post. Mention the grind, discipline, or being grateful.',
       'Rewrite this as an obsessive hustle-culture poster who wakes up at 4am, never rests, and wants you to know they earned everything through pure grind.',
-      'Rewrite this as a completely unhinged hustle maximalist who has not slept in 3 years, considers blinking a waste of time, and will die before taking a day off. Unhinged motivational energy.',
+      'Rewrite this as a completely unhinged hustle maximalist who has not slept in 3 years, considers blinking a waste of time, and will die before taking a day off. Unhinged motivational energy. Write in mixed case with normal punctuation — just make the content extremely over the top and dramatic.',
     ],
   },
 ]
@@ -371,15 +371,7 @@ Text: "${text}"`,
         {/* Share to LinkedIn — shown after jargonification */}
         {jargonified && !loading && (
           <div className="mt-4 flex justify-end">
-            <LinkedInShareButton
-              type="jargon"
-              data={{
-                transcript,
-                jargonified,
-                toneLabel: TONE_STYLES.find(s => s.id === toneStyleRef.current)?.label ?? toneStyle,
-                intensityLabel: INTENSITY_LABELS[intensityRef.current ?? intensity],
-              }}
-            />
+            <LinkedInShareButton text={jargonified} />
           </div>
         )}
 

@@ -113,8 +113,9 @@ export default function HeadshotGenerator() {
       })
 
       if (!visionRes.ok) {
-        const err = await visionRes.json()
-        throw new Error(err.error?.message || `Vision API error ${visionRes.status}`)
+        const errBody = await visionRes.json()
+        console.error('Vision API error:', visionRes.status, errBody)
+        throw new Error(errBody.error?.message || `Vision API error ${visionRes.status}`)
       }
 
       const visionData = await visionRes.json()
@@ -136,8 +137,9 @@ export default function HeadshotGenerator() {
       })
 
       if (!imgRes.ok) {
-        const err = await imgRes.json()
-        throw new Error(err.error?.message || `Image API error ${imgRes.status}`)
+        const errBody = await imgRes.json()
+        console.error('Image API error:', imgRes.status, errBody)
+        throw new Error(errBody.error?.message || `Image API error ${imgRes.status}`)
       }
 
       const imgData = await imgRes.json()
@@ -147,6 +149,7 @@ export default function HeadshotGenerator() {
         setGeneratedSrc(imgData.data[0].url)
       }
     } catch (e) {
+      console.error('generateHeadshot failed:', e)
       setError(e.message)
     } finally {
       stopStepCycle()
@@ -252,6 +255,11 @@ export default function HeadshotGenerator() {
             <div className="w-10 h-10 border-[3px] border-[#0a66c2] border-t-transparent rounded-full animate-spin" />
             <p className="text-sm font-medium text-gray-700">{LOADING_STEPS[loadingStep]}</p>
             <p className="text-xs text-gray-400">This takes 15-20 seconds</p>
+            {error && (
+              <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-xs w-full text-left">
+                {error}
+              </div>
+            )}
           </div>
         )}
 
@@ -315,6 +323,13 @@ export default function HeadshotGenerator() {
               </div>
             )}
 
+            {/* Regen error */}
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+                {error}
+              </div>
+            )}
+
             {/* Share + Reset */}
             <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
               <button
@@ -324,8 +339,7 @@ export default function HeadshotGenerator() {
                 ← Start over
               </button>
               <LinkedInShareButton
-                type="headshot"
-                data={{ description }}
+                text={`Excited to share my new LinkedIn headshot, powered by AI.\n\nOur model described me as: "${description}"\n\nNew photo. New chapter. The personal brand evolution continues.\n\n#PersonalBrand #NewHeadshot #Authentic #OpenToWork`}
               />
             </div>
           </>

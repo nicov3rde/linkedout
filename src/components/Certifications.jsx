@@ -209,8 +209,7 @@ function CertCard({ cert, task, onRegenerate, regenerating }) {
           </button>
           <RegenButton onClick={onRegenerate} spinning={regenerating} />
           <LinkedInShareButton
-            type="cert"
-            data={{ task, name: cert.name, description: cert.description, badge: cert.badge }}
+            text={`I am proud to share that I have earned the ${cert.name} ${cert.badge} certification!\n\n${cert.description}\n\nIssued by LinkedOut Certification Authority · ${new Date().getFullYear()}\n\n#Certified #ProfessionalDevelopment #NeverStopLearning #GrowthMindset`}
             label="Share to LinkedIn™"
           />
         </div>
