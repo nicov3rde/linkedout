@@ -168,7 +168,7 @@ export default function Jargonifier() {
     setError('')
     try {
       const style = TONE_STYLES.find(s => s.id === toneStyleRef.current)
-      const promptInstruction = style.prompts[intensityRef.current]
+      const toneInstruction = style.prompts[intensityRef.current]
 
       const res = await fetch('/api/chat', {
         method: 'POST',
@@ -176,12 +176,27 @@ export default function Jargonifier() {
         body: JSON.stringify({
           model: 'gpt-4o',
           max_tokens: 512,
-          messages: [{
-            role: 'user',
-            content: `${promptInstruction}. Keep it to 2-3 sentences max. Return ONLY the rewritten version, no explanation.
+          messages: [
+            {
+              role: 'system',
+              content: `You are a LinkedIn jargon generator. Take exactly what the user said and rewrite it as a LinkedIn post using corporate buzzwords — but keep it directly related to what they actually said. Do not sanitize, avoid, or generalize the topic. If they said something wild, make it wild in corporate speak.
 
-Text: "${text}"`,
-          }],
+Rules:
+- Stay true to the literal meaning of what was said
+- Use corporate jargon but keep the original action recognizable and funny
+- Do not switch to vague stakeholder language to avoid the topic
+- Short and punchy, 2-4 sentences max
+- Mixed case, no all caps
+- No em dashes
+- Return ONLY the rewritten text, no explanation`,
+            },
+            {
+              role: 'user',
+              content: `Tone style: ${toneInstruction}
+
+Text to rewrite: "${text}"`,
+            },
+          ],
         }),
       })
 
